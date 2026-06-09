@@ -1,0 +1,36 @@
+policy_area_number,policy_area,topic_short,topic_label
+1,families,fam,Families
+2,education,edu,Education
+3,commerce,comm,Commerce
+4,labor and employment,labor,Labor and Employment
+5,government operations and politics,gov,Government Operations and Politics
+6,native americans,native,Native Americans
+7,animals,animals,Animals
+8,transportation and public works,trans,Transportation and Public Works
+9,emergency management,emerg,Emergency Management
+10,finance and financial sector,finance,Finance and Financial Sector
+11,public lands and natural resources,lands,Public Lands and Natural Resources
+12,crime and law enforcement,crime,Crime and Law Enforcement
+13,"science, technology, communications",sci,"Science, Technology, Communications"
+14,law,law,Law
+15,environmental protection,env,Environmental Protection
+16,health,health,Health
+17,water resources development,water,Water Resources Development
+18,immigration,immig,Immigration
+19,energy,energy,Energy
+20,international affairs,intl,International Affairs
+21,economics and public finance,econ,Economics and Public Finance
+22,social welfare,welfare,Social Welfare
+23,taxation,tax,Taxation
+24,foreign trade and international finance,trade,Foreign Trade and International Finance
+25,"arts, culture, religion",arts,"Arts, Culture, Religion"
+26,housing and community development,housing,Housing and Community Development
+27,agriculture and food,ag,Agriculture and Food
+28,armed forces and national security,defense,Armed Forces and National Security
+29,private legislation,private,Private Legislation
+30,"civil rights and liberties, minority issues",civil,"Civil Rights and Liberties, Minority Issues"
+31,congress,cong,Congress
+32,sports and recreation,sports,Sports and Recreation
+33,commemorations,commem,Commemorations
+34,social sciences and history,history,Social Sciences and History
+99,na,na,Unclassified

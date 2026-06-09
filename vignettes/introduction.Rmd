@@ -1,0 +1,217 @@
+---
+title: "Introduction to biparty"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to biparty}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+```{r setup}
+library(biparty)
+library(dplyr)
+```
+
+## What `biparty` provides
+
+The `biparty` package provides **Congressional Bipartisanship Scores (CBS)**:
+member-level measures of cross-party collaboration in the U.S. Congress,
+along with convenience functions for lookup, ranking, issue-area filtering,
+and visualization. The scores are introduced and described in Dobson and
+Lollis (2026), with support from the Portman Center for Policy Solutions at
+the University of Cincinnati.
+
+For every member in every Congress and chamber, two complementary scores
+are reported:
+
+- **Attract** — the share of out-party original cosponsors on bills the
+  member *sponsored*. A high attract score indicates the member's own
+  legislation draws cross-party support.
+- **Offer** — the share of the member's own original cosponsorships that
+  went to out-party-sponsored bills. A high offer score indicates the member
+  actively lends support to the other party's legislation.
+
+Both scores are computed overall and within 34 CRS policy areas. In addition
+to the raw (unweighted) measures, the authors provide a weighted version that
+adjusts for imprecise measurement associated with legislators with low bill
+activity, pulling low-volume observations toward a Congress × chamber (or
+Congress × chamber × issue) prior mean. Scores range from 0 to 1, with
+higher scores indicating more cross-party activity.
+
+## The two datasets
+
+The package provides two datasets. `aggregate.cbs` contains overall attract
+and offer scores for each member-Congress-chamber observation:
+
+```{r}
+data(aggregate.cbs)
+head(aggregate.cbs)
+```
+
+`issue.area.cbs` contains the same scores computed separately within each
+of the 34 CRS policy areas:
+
+```{r}
+data(issue.area.cbs)
+# Preview a few identifier and issue-area columns
+issue.area.cbs %>%
+  select(congress, chamber, name, party,
+         attract_health_weighted, offer_health_weighted) %>%
+  head()
+```
+
+## Looking up a member
+
+Use `get_member_scores()` to retrieve a member's full score history.
+Members can be looked up by Bioguide ID or name substring:
+
+```{r}
+# Charles Grassley (R-IA) by Bioguide ID — full career
+get_member_scores("G000386")
+
+# Steny Hoyer (D-MD) by name substring
+get_member_scores("hoyer", congress = 117)
+```
+
+Pass `include_issues = TRUE` to attach issue-area scores:
+
+```{r, eval = FALSE}
+grassley_full <- get_member_scores("G000386", congress = 117,
+                                   include_issues = TRUE)
+```
+
+Use `get_member_trend()` to return a clean time series ready for analysis
+or plotting:
+
+```{r}
+get_member_trend("G000386", score_type = "attract")
+```
+
+## Comparing members
+
+`compare_members()` returns scores for two or more members side by side:
+
+```{r}
+compare_members(c("G000386", "H000874"), congress = 115:117)
+```
+
+## Ranking members
+
+`rank_members()` returns a leaderboard sorted by attract or offer score
+within a given Congress and chamber:
+
+```{r}
+# Top 10 senators by attract score in the 100th Congress
+rank_members(100, "senate", score_type = "attract")
+```
+
+Restrict to one party or rank by an issue-area score:
+
+```{r}
+# Top 5 House Democrats by offer score, 117th Congress
+rank_members(117, "house", score_type = "offer", party = "D", n = 5)
+
+# Top 10 senators by health attract score, 117th Congress
+rank_members(117, "senate", score_type = "attract", issue = "health")
+```
+
+## Issue-area analysis
+
+`list_issues()` returns the full crosswalk of short labels to CRS policy
+area names:
+
+```{r}
+list_issues() %>% head(10)
+```
+
+`get_issue_scores()` returns every member's scores for a single policy area:
+
+```{r}
+health <- get_issue_scores("health", congress = 117)
+head(health)
+```
+
+Because `get_issue_scores()` returns a tidy data frame, it can be piped
+directly into dplyr or ggplot2 workflows:
+
+```{r}
+health %>%
+  group_by(chamber, party) %>%
+  summarise(
+    mean_attract = mean(attract, na.rm = TRUE),
+    mean_offer   = mean(offer,   na.rm = TRUE),
+    n            = n(),
+    .groups      = "drop"
+  )
+```
+
+Use `get_issue_trend()` to track how a policy area's mean bipartisanship
+has changed over time:
+
+```{r}
+get_issue_trend("health", chamber = "senate", by_party = TRUE)
+```
+
+## Congress-level summaries
+
+`get_congress_summary()` aggregates scores to the Congress × chamber level:
+
+```{r}
+# Senate means by party, 115th through 118th Congresses
+get_congress_summary(chamber = "senate", congress = 115:118,
+                     by_party = TRUE)
+```
+
+## Visualization
+
+`plot_bipartisanship()` generates a violin plot of issue-area score
+distributions by party and chamber, with an option to highlight a member:
+
+```{r, fig.height = 7}
+plot_bipartisanship(100, chambers = "senate", highlight = "G000386")
+```
+
+`plot_trend()` produces a time-series line chart of scores across Congresses.
+Use `type = "member"` to trace individual careers or `type = "party"` for
+party-average trends:
+
+```{r}
+# Charles Grassley and Steny Hoyer — full careers
+plot_trend(c("G000386", "H000874"), score_type = "attract")
+```
+
+```{r}
+# Party-average attract trend in the Senate
+plot_trend(c("D", "R"), type = "party", chamber = "senate",
+           score_type = "attract")
+```
+
+`plot_member_profile()` generates a profile card combining a member photo,
+career summary statistics, and a bar chart of issue-area scores. The
+`magick` and `patchwork` packages are required for the full card layout:
+
+```{r, fig.height = 8}
+# Steny Hoyer's profile in the 100th Congress
+plot_member_profile("H000874", congress = 100, chamber = "house")
+```
+
+## Citation
+
+If you use these scores, please cite the paper:
+
+> Dobson, M.R. and Lollis, J.M. (2026). Congressional bipartisanship scores
+> by member and issue area, 1983--2024. Working paper.
+
+and the R package:
+
+> Dobson, M.R. and Lollis, J.M. (2026). *biparty: Congressional
+> Bipartisanship Scores by Member and Issue Area*. R package version 0.1.0.
